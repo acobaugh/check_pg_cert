@@ -67,9 +67,9 @@ func main() {
 
 	certs := client.ConnectionState().PeerCertificates
 	for i := 0; i < len(certs); i++ {
-		fmt.Printf("%d:\n  Subject: %s\n", i, certs[i].Subject)
-		fmt.Printf("  Issuer: %s\n", certs[i].Issuer)
-		fmt.Printf("  NotAfter: %s\n", certs[i].NotAfter)
+		fmt.Printf("%d: Subject: %s\n", i, certs[i].Subject)
+		fmt.Printf("   Issuer: %s\n", certs[i].Issuer)
+		fmt.Printf("   NotAfter: %s\n", certs[i].NotAfter)
 	}
 
 }
