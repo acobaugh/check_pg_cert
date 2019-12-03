@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"flag"
 	"fmt"
 	"io"
 	"net"
@@ -9,13 +10,22 @@ import (
 	"os"
 )
 
+var Usage = func() {
+	fmt.Printf("Usage: %s postgresql://<host>:<port> [options]\nOptions:\n", os.Args[0])
+	flag.PrintDefaults()
+}
+
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Printf("Usage: %s postgresql://<host>[:port]\n", os.Args[0])
+	var insecureSkipVerify bool
+	flag.BoolVar(&insecureSkipVerify, "insecure-skip-verify", false, "Skip peer certificate verification")
+	flag.Parse()
+
+	if len(flag.Args()) != 1 {
+		Usage()
 		os.Exit(1)
 	}
 
-	u, err := url.Parse(os.Args[1])
+	u, err := url.Parse(flag.Args()[0])
 	if err != nil {
 		fmt.Printf("%s", err)
 		os.Exit(1)
@@ -54,7 +64,7 @@ func main() {
 	}
 
 	tlsConf := tls.Config{}
-	tlsConf.InsecureSkipVerify = false
+	tlsConf.InsecureSkipVerify = insecureSkipVerify
 	tlsConf.ServerName = u.Hostname()
 
 	client := tls.Client(cn.c, &tlsConf)
@@ -68,6 +78,11 @@ func main() {
 	certs := client.ConnectionState().PeerCertificates
 	for i := 0; i < len(certs); i++ {
 		fmt.Printf("%d: Subject: %s\n", i, certs[i].Subject)
+		fmt.Print("   DNSNames: ")
+		for j := 0; j < len(certs[i].DNSNames); j++ {
+			fmt.Printf("%s, ", certs[i].DNSNames[j])
+		}
+		fmt.Println()
 		fmt.Printf("   Issuer: %s\n", certs[i].Issuer)
 		fmt.Printf("   NotAfter: %s\n", certs[i].NotAfter)
 	}
